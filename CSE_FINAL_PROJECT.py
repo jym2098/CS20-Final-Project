@@ -97,7 +97,7 @@ def walkInSelection():
     '''
     print('''
     1. Add Walk-in
-    2. View Walk-in's
+    2. View Walk-in's and who is next in line
     3. Edit Walk-in
     4. Exit Program
     ''')
@@ -163,14 +163,15 @@ def reservationTable():
     global CURSOR, CONNECTION
 
     CURSOR.execute('''
-        CREATE TABLE reservation(
-            id INTEGER PRIMARY KEY,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            phone TEXT NOT NULL, 
-            date TEXT NOT NULL,
-            section TEXT
-        )
+        CREATE TABLE 
+            reservation(
+                id INTEGER PRIMARY KEY,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                phone TEXT NOT NULL, 
+                date TEXT NOT NULL,
+                section TEXT
+            )
     ;''')
 
     CONNECTION.commit()
@@ -205,7 +206,8 @@ if __name__ == "__main__":
             reservationTable()
             walkinTable()
         if OPTION == 1:
-            reservationSelection()
+            RESERVATIONCHOICE = reservationSelection()
+            addReservation(RESERVATIONCHOICE)
         if OPTION == 2:
             walkInSelection()
 
