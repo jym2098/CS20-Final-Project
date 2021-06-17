@@ -82,7 +82,7 @@ def reservationSelection():
         if CHOICE == 2:
             RESERVATIONCHOICE = "VIEWR"
         if CHOICE == 3:
-            RESERVATIONCHOICE = "EXITR"
+            RESERVATIONCHOICE = "EDITR"
         if CHOICE == 4:
             RESERVATIONCHOICE = "Exit"
         return RESERVATIONCHOICE
@@ -195,6 +195,27 @@ def walkinTable():
 
 ### OUTPUTS
 
+def dispReservations(RESERVATIONCHOICE):
+    '''
+    Displays all reservations starting with date
+    :return: (None)
+    '''
+    if RESERVATIONCHOICE == "VIEWR":
+        RESERVATIONS = CURSOR.execute('''
+            SELECT
+                first_name,
+                last_name,
+                phone,
+                date,
+                section
+            FROM
+                reservation
+            ORDER BY
+                date
+        ;''').fetchall()
+
+        for i in range(len(RESERVATIONS)):
+            print(f"{RESERVATIONS}")
 
 
 ### --- MAIN PROGRAM CODE --- ###
@@ -208,6 +229,7 @@ if __name__ == "__main__":
         if OPTION == 1:
             RESERVATIONCHOICE = reservationSelection()
             addReservation(RESERVATIONCHOICE)
+            dispReservations(RESERVATIONCHOICE)
         if OPTION == 2:
             walkInSelection()
 
