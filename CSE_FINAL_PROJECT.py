@@ -76,7 +76,7 @@ def reservationSelection():
 4. Exit Program
     ''')
     CHOICE = checkInt(input("> "))
-    if CHOICE > 0 and CHOICE < 4:
+    if CHOICE > 0 and CHOICE < 5:
         if CHOICE == 1:
             RESERVATIONCHOICE = "ADDR"
         if CHOICE == 2:
@@ -88,7 +88,7 @@ def reservationSelection():
         return RESERVATIONCHOICE
     else:
         print("Please enter valid number in the menu.")
-        return
+        return reservationSelection()
 
 def walkInSelection():
     '''
@@ -102,7 +102,7 @@ def walkInSelection():
 4. Exit Program
     ''')
     CHOICE = checkInt(input("> "))
-    if CHOICE > 0 and CHOICE < 4:
+    if CHOICE > 0 and CHOICE < 5:
         if CHOICE == 1:
             WALKINCHOICE = "ADDW"
         if CHOICE == 2:
@@ -114,7 +114,7 @@ def walkInSelection():
         return WALKINCHOICE
     else:
         print("Please enter valid number in the menu.")
-        return
+        return walkInSelection()
 
 def addReservation(RESERVATIONCHOICE):
     '''
@@ -128,6 +128,7 @@ def addReservation(RESERVATIONCHOICE):
         LAST_NAME = input("Last Name: ")
         PHONE = input("Phone number: ")
         DATE = input("Date: ")
+        TIME = input("Time: ")
         SECTION = input("Requested Section: ")
         # PROCESSING
         if FIRST_NAME == "" or LAST_NAME == "":
@@ -140,12 +141,13 @@ def addReservation(RESERVATIONCHOICE):
                         last_name,
                         phone,
                         date,
+                        time,
                         section
                         )
                     VALUES (
-                        ?, ?, ?, ?, ?
+                        ?, ?, ?, ?, ?, ?
                         )
-                ;''', (FIRST_NAME, LAST_NAME, PHONE, DATE, SECTION))
+                ;''', (FIRST_NAME, LAST_NAME, PHONE, DATE, TIME, SECTION))
         CONNECTION.commit()
         print(f"{FIRST_NAME} {LAST_NAME} successfully added to reservation list!")
 
@@ -156,12 +158,10 @@ def addWalkIn(WALKINCHOICE):
     '''
     global CURSOR, CONNECTION
     if WALKINCHOICE == "ADDW":
-        # Inputs
         FIRST_NAME = input("First Name: ")
         LAST_NAME = input("Last Name: ")
         PHONE = input("Phone number: ")
         TIME = input("Time: ")
-        # PROCESSING
         if FIRST_NAME == "" or LAST_NAME == "":
             print("Not enough information given")
         else:
@@ -189,10 +189,12 @@ def getReservationID():
     if RESERVATIONCHOICE == "EDITR":
         RESERVATION = CURSOR.execute('''
             SELECT
+                id,
                 first_name,
                 last_name,
                 phone,
                 date,
+                time,
                 section
             FROM
                 reservation
@@ -200,16 +202,44 @@ def getReservationID():
                 first_name
         ;''').fetchall()
 
-        print("Please select a contact")
+        print("Please select a reservation")
         for i in range(len(RESERVATION)):
             print(f"{i+1}. {RESERVATION[i][1]} {RESERVATION[i][2]}")
 
-        INDEX = int(input("> "))-1
+        INDEX = int(input("> "))
         CONTACT_ID = RESERVATION[INDEX][0]
         return CONTACT_ID
 
+def getWalkinID():
+    '''
+    ask the user to select which reservation
+    :return: (int) Contact ID (Primary Key)
+    '''
+    global CURSOR
+    if WALKINCHOICE == "EDITW":
+        WALKIN = CURSOR.execute('''
+            SELECT
+                id,
+                first_name,
+                last_name,
+                phone,
+                time
+            FROM
+                walkin
+            ORDER BY
+                time
+        ;''').fetchall()
 
-def editReservation(INFO, RESERVATIONCHOICE):
+        print("Please select a walk-in")
+        for i in range(len(WALKIN)):
+            print(f"{i+1}. {WALKIN[i][1]} {WALKIN[i][2]}")
+
+        INDEX = int(input("> "))
+        CONTACT_ID = WALKIN[INDEX][0]
+        return CONTACT_ID
+
+
+def editReservation(RINFO, RESERVATIONCHOICE):
     '''
     User updates contact information
     :param INFO: (int)
@@ -225,19 +255,21 @@ def editReservation(INFO, RESERVATIONCHOICE):
                 last_name,
                 phone,
                 date,
+                time,
                 section
             FROM
                 reservation
             WHERE
                 INFO = ?
-        ;''', [INFO]).fetchone()
+        ;''', [RINFO]).fetchone()
 
         print("Leave field blank for no changes")
         FIRST_NAME = input(f"First Name({RESERVATION[0]}): ")
         LAST_NAME = input(f"Last Name ({RESERVATION[1]}): ")
         PHONE = input(f"Phone ({RESERVATION[2]}): ")
         DATE = input(f"Date ({RESERVATION[3]}): ")
-        SECTION = input(f"Requested Section ({RESERVATION[4]}): ")
+        TIME = input(f"Time ({RESERVATION[4]}): ")
+        SECTION = input(f"Requested Section ({RESERVATION[5]}): ")
 
         NEW_INFO = []
         if FIRST_NAME == "":
@@ -256,9 +288,13 @@ def editReservation(INFO, RESERVATIONCHOICE):
             NEW_INFO.append(RESERVATION[3])
         else:
             NEW_INFO.append(DATE)
+        if TIME == "":
+            NEW_INFO.append(RESERVATION[4])
+        else:
+            NEW_INFO.appened(TIME)
         if SECTION == "":
             NEW_INFO.append(SECTION)
-        NEW_INFO.append(INFO)
+        NEW_INFO.append(RINFO)
 
         CURSOR.execute('''
             UPDATE
@@ -276,11 +312,70 @@ def editReservation(INFO, RESERVATIONCHOICE):
         CONNECTION.commit()
         print(f"{NEW_INFO[0]} {NEW_INFO[1]} was successfully updated!")
 
+def editWalkin(WINFO, WALKINCHOICE):
+    '''
+    User updates contact information
+    :param INFO: (int)
+    :return: (None)
+    '''
+
+    global CURSOR, CONNECTION
+    if WALKINCHOICE == "EDITW":
+
+        WALKIN = CURSOR.execute('''
+            SELECT
+                first_name,
+                last_name,
+                phone,
+                date,
+                section
+            FROM
+                walkin
+            WHERE
+                INFO = ?
+        ;''', [WINFO]).fetchone()
+
+        print("Leave field blank for no changes")
+        FIRST_NAME = input(f"First Name({WALKIN[0]}): ")
+        LAST_NAME = input(f"Last Name ({WALKIN[1]}): ")
+        PHONE = input(f"Phone ({WALKIN[2]}): ")
+        TIME = input(f"Time ({WALKIN[3]}): ")
+
+        NEW_INFO = []
+        if FIRST_NAME == "":
+            NEW_INFO.append(WALKIN[0])
+        else:
+            NEW_INFO.append(FIRST_NAME)
+        if LAST_NAME == "":
+            NEW_INFO.append(WALKIN[1])
+        else:
+            NEW_INFO.append(LAST_NAME)
+        if PHONE == "":
+            NEW_INFO.append(WALKIN[2])
+        else:
+            NEW_INFO.append(PHONE)
+        if TIME == "":
+            NEW_INFO.append(WALKIN[3])
+        else:
+            NEW_INFO.append(TIME)
+
+        CURSOR.execute('''
+            UPDATE
+                walkin
+            SET
+                first_name = ?,
+                last_name = ?,
+                phone = ?,
+                time = ?
+            WHERE
+                id = ?
+        ;''', NEW_INFO)
+
+        CONNECTION.commit()
+        print(f"{NEW_INFO[0]} {NEW_INFO[1]} was successfully updated!")
+
 
 ### PROCESSING
-
-
-
 
 def reservationTable():
     '''
@@ -297,6 +392,7 @@ def reservationTable():
                 last_name TEXT NOT NULL,
                 phone TEXT NOT NULL, 
                 date TEXT NOT NULL,
+                time TEXT NOT NULL,
                 section TEXT
             )
     ;''')
@@ -305,23 +401,32 @@ def reservationTable():
 
 def walkinTable():
     '''
-    creates reservation table if first run
+    create the contacts table if it is the first run.
     :return: (None)
     '''
     global CURSOR, CONNECTION
 
     CURSOR.execute('''
-        CREATE TABLE 
-            walkin(
-                id INTEGER PRIMARY KEY,
-                first_name TEXT NOT NULL,
-                last_name TEXT NOT NULL,
-                phone TEXT NOT NULL, 
-                time TEXT NOT NULL,
-            )
+        CREATE TABLE walkin(
+            id INTEGER PRIMARY KEY,
+            first_name TEXT NOT NULL,
+            last_name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            time TEXT NOT NULL
+        )
     ;''')
 
     CONNECTION.commit()
+
+def exitReservation(RESERVATIONCHOICE):
+    if RESERVATIONCHOICE == "Exit":
+        print("Have a nice day!")
+        sys.exit()
+
+def exitWalkin(WALKINCHOICE):
+    if WALKINCHOICE == "Exit":
+        print("Have a nice day!")
+        sys.exit()
 
 ### OUTPUTS
 
@@ -337,11 +442,13 @@ def dispReservations(RESERVATIONCHOICE):
                 last_name,
                 phone,
                 date,
+                time,
                 section
             FROM
                 reservation
             ORDER BY
                 date
+                time
         ;''').fetchall()
 
         for i in range(len(RESERVATIONS)):
@@ -358,9 +465,9 @@ def dispWalkIn(WALKINCHOICE):
                 first_name,
                 last_name,
                 phone,
-                time,
+                time
             FROM
-                walk_in
+                walkin
             ORDER BY
                 time
         ;''').fetchall()
@@ -375,18 +482,22 @@ if __name__ == "__main__":
         startingScreen()
         OPTION = startMenu()
         if FIRST_RUN:
-            reservationTable()
             walkinTable()
+            reservationTable()
         if OPTION == 1:
             RESERVATIONCHOICE = reservationSelection()
             addReservation(RESERVATIONCHOICE)
             dispReservations(RESERVATIONCHOICE)
-            INFO = getReservationID()
-            editReservation(INFO,RESERVATIONCHOICE)
+            RINFO = getReservationID()
+            editReservation(RINFO,RESERVATIONCHOICE)
+            exitReservation(RESERVATIONCHOICE)
         if OPTION == 2:
             WALKINCHOICE = walkInSelection()
             addWalkIn(WALKINCHOICE)
-            walkInSelection(WALKINCHOICE)
+            dispWalkIn(WALKINCHOICE)
+            WINFO = getWalkinID()
+            editWalkin(WINFO, WALKINCHOICE)
+            exitWalkin(WALKINCHOICE)
 
 
         if OPTION == 3:
