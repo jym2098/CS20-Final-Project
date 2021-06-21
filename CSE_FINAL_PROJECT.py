@@ -438,21 +438,19 @@ def dispReservations(RESERVATIONCHOICE):
     if RESERVATIONCHOICE == "VIEWR":
         RESERVATIONS = CURSOR.execute('''
             SELECT
+                date,
                 first_name,
                 last_name,
                 phone,
-                date,
                 time,
                 section
             FROM
                 reservation
             ORDER BY
                 date
-                time
         ;''').fetchall()
-
-        for i in range(len(RESERVATIONS)):
-            print(f"{RESERVATIONS}")
+        for item in RESERVATIONS:
+            print(*item, sep= ', ')
 
 def dispWalkIn(WALKINCHOICE):
     '''
@@ -471,9 +469,8 @@ def dispWalkIn(WALKINCHOICE):
             ORDER BY
                 time
         ;''').fetchall()
-
-        for i in range(len(WALKIN)):
-            print(f"{WALKIN}")
+        for item in WALKIN:
+            print(*item, sep= ', ')
 
 
 ### --- MAIN PROGRAM CODE --- ###
