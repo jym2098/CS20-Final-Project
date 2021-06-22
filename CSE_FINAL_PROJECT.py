@@ -128,10 +128,10 @@ def deleteSelection():
     CHOICE = checkInt(input("> "))
     if CHOICE > 0 and CHOICE < 3:
         if CHOICE == 1:
-            WALKINCHOICE = "DELETER"
+            DELETECHOICE = "DELETER"
         if CHOICE == 2:
-            WALKINCHOICE = "DELETEW"
-        return WALKINCHOICE
+            DELETECHOICE = "DELETEW"
+        return DELETECHOICE
     else:
         print("Please enter valid number in the menu.")
         return deleteSelection()
@@ -154,6 +154,7 @@ def addReservation(RESERVATIONCHOICE):
         # PROCESSING
         if FIRST_NAME == "" or LAST_NAME == "":
             print("Not enough information given")
+            return addReservation(RESERVATIONCHOICE)
         else:
             CURSOR.execute('''
                 INSERT INTO
@@ -185,6 +186,7 @@ def addWalkIn(WALKINCHOICE):
         TIME = input("Time: ")
         if FIRST_NAME == "" or LAST_NAME == "":
             print("Not enough information given")
+            return addWalkIn(WALKINCHOICE)
         else:
             CURSOR.execute('''
                 INSERT INTO
@@ -258,6 +260,57 @@ def chooseWalkIn():
         SELECTION = checkInt(input("> "))-1
         WALKINSLSECTION = WALKIN[SELECTION][0]
         return WALKINSLSECTION
+
+def chooseDeleteReservation():
+    global CURSOR
+    if DELETECHOICE == "DELETER":
+        RESERVATIONDELETE = CURSOR.execute('''
+            SELECT
+                id,
+                first_name,
+                last_name,
+                phone,
+                date,
+                time,
+                section
+            FROM
+                reservation
+            ORDER BY
+                first_name
+        ;''').fetchall()
+
+        print("Please select a reservation")
+        for i in range(len(RESERVATIONDELETE)):
+            print(f"{i+1}. {RESERVATIONDELETE[i][1]} {RESERVATIONDELETE[i][2]}")
+
+        SELECTION = checkInt(input("> "))-1
+        RESERVATIONSELECTION = RESERVATIONDELETE[SELECTION][0]
+        return RESERVATIONSELECTION
+
+
+def chooseDeleteWalkIn():
+    global CURSOR
+    if DELETECHOICE == "DELETEW":
+        WALKINDELETE = CURSOR.execute('''
+            SELECT
+                id,
+                first_name,
+                last_name,
+                phone,
+                time
+            FROM
+                walkin
+            ORDER BY
+                first_name
+        ;''').fetchall()
+
+        print("Please select a reservation")
+        for i in range(len(WALKINDELETE)):
+            print(f"{i+1}. {WALKINDELETE[i][1]} {WALKINDELETE[i][2]}")
+
+        SELECTION = checkInt(input("> "))-1
+        WALKINSELECTION = WALKINDELETE[SELECTION][0]
+        return WALKINSELECTION
 
 
 def editReservation(RINFO, RESERVATIONCHOICE):
@@ -350,12 +403,11 @@ def editWalkin(WINFO, WALKINCHOICE):
                 first_name,
                 last_name,
                 phone,
-                date,
-                section
+                time
             FROM
                 walkin
             WHERE
-                INFO = ?
+                id = ?
         ;''', [WINFO]).fetchone()
 
         print("Leave field blank for no changes")
@@ -364,23 +416,24 @@ def editWalkin(WINFO, WALKINCHOICE):
         PHONE = input(f"Phone ({WALKIN[2]}): ")
         TIME = input(f"Time ({WALKIN[3]}): ")
 
-        NEW_INFO = []
+        INFO = []
         if FIRST_NAME == "":
-            NEW_INFO.append(WALKIN[0])
+            INFO.append(WALKIN[0])
         else:
-            NEW_INFO.append(FIRST_NAME)
+            INFO.append(FIRST_NAME)
         if LAST_NAME == "":
-            NEW_INFO.append(WALKIN[1])
+            INFO.append(WALKIN[1])
         else:
-            NEW_INFO.append(LAST_NAME)
+            INFO.append(LAST_NAME)
         if PHONE == "":
-            NEW_INFO.append(WALKIN[2])
+            INFO.append(WALKIN[2])
         else:
-            NEW_INFO.append(PHONE)
+            INFO.append(PHONE)
         if TIME == "":
-            NEW_INFO.append(WALKIN[3])
+            INFO.append(WALKIN[3])
         else:
-            NEW_INFO.append(TIME)
+            INFO.append(TIME)
+        INFO.append(WINFO)
 
         CURSOR.execute('''
             UPDATE
@@ -392,10 +445,10 @@ def editWalkin(WINFO, WALKINCHOICE):
                 time = ?
             WHERE
                 id = ?
-        ;''', NEW_INFO)
+        ;''', INFO)
 
         CONNECTION.commit()
-        print(f"{NEW_INFO[0]} {NEW_INFO[1]} was successfully updated!")
+        print(f"{INFO[0]} {INFO[1]} was successfully updated!")
 
 
 ### PROCESSING
@@ -441,6 +494,72 @@ def walkinTable():
     ;''')
 
     CONNECTION.commit()
+
+
+def deleteReservation(DELETECHOICE, RINFO):
+    '''
+    Delete a contact from the contacts database
+    :param CONTACT_ID: (int) primary key
+    :return: (none)
+    '''
+    global CURSOR, CONNECTION
+    if DELETECHOICE == "DELETER":
+        DELETER = CURSOR.execute('''
+            SELECT
+                first_name,
+                last_name,
+                phone,
+                date,
+                time,
+                section
+            FROM
+                reservation
+            WHERE
+                id = ?
+        ;''', [RINFO]).fetchone()
+
+        CURSOR.execute('''
+            DELETE FROM
+                reservation
+            WHERE
+                id = ?
+        ;''', [RINFO])
+
+        CONNECTION.commit()
+
+        print("Successfully Deleted!")
+
+
+def deleteWalkIn(DELETECHOICE, WINFO):
+    '''
+    Delete a contact from the contacts database
+    :param CONTACT_ID: (int) primary key
+    :return: (none)
+    '''
+    global CURSOR, CONNECTION
+    if DELETECHOICE == "DELETEW":
+        DELETEW = CURSOR.execute('''
+            SELECT
+                first_name,
+                last_name,
+                phone,
+                time
+            FROM
+                walkin
+            WHERE
+                id = ?
+        ;''', [WINFO]).fetchone()
+
+        CURSOR.execute('''
+            DELETE FROM
+                walkin
+            WHERE
+                id = ?
+        ;''', [WINFO])
+
+        CONNECTION.commit()
+
+        print("Successfully Deleted!")
 
 def exitReservation(RESERVATIONCHOICE):
     if RESERVATIONCHOICE == "Exit":
@@ -504,8 +623,8 @@ if __name__ == "__main__":
         startingScreen()
         OPTION = startMenu()
         if FIRST_RUN:
-            walkinTable()
             reservationTable()
+            walkinTable()
         if OPTION == 1:
             RESERVATIONCHOICE = reservationSelection()
             addReservation(RESERVATIONCHOICE)
@@ -520,7 +639,9 @@ if __name__ == "__main__":
             WINFO = chooseWalkIn()
             editWalkin(WINFO, WALKINCHOICE)
             exitWalkin(WALKINCHOICE)
-
-
         if OPTION == 3:
-            pass
+            DELETECHOICE = deleteSelection()
+            RINFO = chooseDeleteReservation()
+            deleteReservation(DELETECHOICE, RINFO)
+            WINFO = chooseDeleteWalkIn()
+            deleteWalkIn(DELETECHOICE, WINFO)
