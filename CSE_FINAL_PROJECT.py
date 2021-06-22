@@ -44,6 +44,18 @@ def checkInt(NUM):
         NEW_NUM = input(">")
         return checkInt(NEW_NUM)
 
+def askRepeat():
+    '''
+    Choose whether to end the program
+    :return: (bool)
+    '''
+    REPEAT = input("Use Program Again? Y/n: ")
+    if REPEAT == "n" or REPEAT == "N" or REPEAT == "no":
+        return False
+    else:
+        return True
+
+
 ### INPUTS
 def startMenu():
     '''
@@ -124,13 +136,16 @@ def deleteSelection():
     print('''
 1. Reservation
 2. Walk-In
+3. Exit Program
     ''')
     CHOICE = checkInt(input("> "))
-    if CHOICE > 0 and CHOICE < 3:
+    if CHOICE > 0 and CHOICE < 4:
         if CHOICE == 1:
             DELETECHOICE = "DELETER"
         if CHOICE == 2:
             DELETECHOICE = "DELETEW"
+        if CHOICE == 3:
+            DELETECHOICE = "Exit"
         return DELETECHOICE
     else:
         print("Please enter valid number in the menu.")
@@ -571,6 +586,11 @@ def exitWalkin(WALKINCHOICE):
         print("Have a nice day!")
         sys.exit()
 
+def exitDelete(DELETECHOICE):
+    if DELETECHOICE == "Exit":
+        print("Have a nice day!")
+        sys.exit()
+
 ### OUTPUTS
 
 def dispReservations(RESERVATIONCHOICE):
@@ -594,7 +614,6 @@ def dispReservations(RESERVATIONCHOICE):
         ;''').fetchall()
         for item in RESERVATIONS:
             print(*item, sep= ', ')
-        sys.exit()
 
 def dispWalkIn(WALKINCHOICE):
     '''
@@ -630,8 +649,11 @@ if __name__ == "__main__":
             addReservation(RESERVATIONCHOICE)
             dispReservations(RESERVATIONCHOICE)
             RINFO = chooseReservation()
-            editReservation(RINFO,RESERVATIONCHOICE)
+            editReservation(RINFO, RESERVATIONCHOICE)
             exitReservation(RESERVATIONCHOICE)
+            if not askRepeat():
+                print("Have a nice day!")
+                sys.exit()
         if OPTION == 2:
             WALKINCHOICE = walkInSelection()
             addWalkIn(WALKINCHOICE)
@@ -639,9 +661,16 @@ if __name__ == "__main__":
             WINFO = chooseWalkIn()
             editWalkin(WINFO, WALKINCHOICE)
             exitWalkin(WALKINCHOICE)
+            if not askRepeat():
+                print("Have a nice day!")
+                sys.exit()
         if OPTION == 3:
             DELETECHOICE = deleteSelection()
             RINFO = chooseDeleteReservation()
             deleteReservation(DELETECHOICE, RINFO)
             WINFO = chooseDeleteWalkIn()
             deleteWalkIn(DELETECHOICE, WINFO)
+            exitDelete(DELETECHOICE)
+            if not askRepeat():
+                print("Have a nice day!")
+                sys.exit()
