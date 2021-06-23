@@ -10,13 +10,14 @@ import sys
 import sqlite3
 import pathlib
 
-DB_FILENAME = "Reservation_and_walk_in list.db"
+FILENAME = "Reservation_and_walk_in list.db"
 
 FIRST_RUN = True
-if (pathlib.Path.cwd() / DB_FILENAME).exists():
+if (pathlib.Path.cwd() / FILENAME).exists():
     FIRST_RUN = False
 
-CONNECTION = sqlite3.connect(DB_FILENAME)
+
+CONNECTION = sqlite3.connect(FILENAME)
 CURSOR = CONNECTION.cursor()
 
 # --- SUBROUTINES --- #
@@ -33,7 +34,7 @@ Organizing you to success!
 def checkInt(NUM):
     '''
     Verifies whether the number is an integer
-    :param NUM: (int) Value to be verified
+    :param NUM: (int) Integer to be verified
     :return: (int)
     '''
     if NUM.isnumeric():
@@ -109,7 +110,7 @@ def walkInSelection():
     '''
     print('''
 1. Add Walk-in
-2. View Walk-in's and who is next in line
+2. View Walk-in's
 3. Edit Walk-in
 4. Exit Program
     ''')
@@ -130,7 +131,7 @@ def walkInSelection():
 
 def deleteSelection():
     '''
-    user selects which walk-in option to go to
+    user selects which delete option to go to
     :return: (str)
     '''
     print('''
@@ -190,7 +191,7 @@ def addReservation(RESERVATIONCHOICE):
 
 def addWalkIn(WALKINCHOICE):
     '''
-    User enters reservation information
+    User enters walk-in information
     :return: (None)
     '''
     global CURSOR, CONNECTION
@@ -220,8 +221,8 @@ def addWalkIn(WALKINCHOICE):
 
 def chooseReservation():
     '''
-    ask the user to select which reservation
-    :return: (int) Contact ID (Primary Key)
+    ask the user to select which reservation to edit
+    :return: (int) reservation selection
     '''
     global CURSOR
     if RESERVATIONCHOICE == "EDITR":
@@ -250,8 +251,8 @@ def chooseReservation():
 
 def chooseWalkIn():
     '''
-    ask the user to select which reservation
-    :return: (int) Contact ID (Primary Key)
+    ask the user to select which walk-in to edit
+    :return: (int) walk-in selection
     '''
     global CURSOR
     if WALKINCHOICE == "EDITW":
@@ -277,6 +278,10 @@ def chooseWalkIn():
         return WALKINSLSECTION
 
 def chooseDeleteReservation():
+    '''
+    ask the user to select which reservation to delete
+    :return: (int) delete reservation selection
+    '''
     global CURSOR
     if DELETECHOICE == "DELETER":
         RESERVATIONDELETE = CURSOR.execute('''
@@ -304,6 +309,10 @@ def chooseDeleteReservation():
 
 
 def chooseDeleteWalkIn():
+    '''
+    ask the user to select which walk-in to delete
+    :return: (int) delete walk-in selection
+    '''
     global CURSOR
     if DELETECHOICE == "DELETEW":
         WALKINDELETE = CURSOR.execute('''
@@ -330,9 +339,10 @@ def chooseDeleteWalkIn():
 
 def editReservation(RINFO, RESERVATIONCHOICE):
     '''
-    User updates contact information
-    :param INFO: (int)
-    :return: (None)
+    User updates the reservation information
+    :param RINFO: (int) Chosen reservation to edit
+    :param RESERVATIONCHOICE: (int) Chosen reservation option
+    :return: (none)
     '''
 
     global CURSOR, CONNECTION
@@ -382,6 +392,8 @@ def editReservation(RINFO, RESERVATIONCHOICE):
         else:
             NEW_INFO.append(TIME)
         if SECTION == "":
+            NEW_INFO.append(RESERVATION[5])
+        else:
             NEW_INFO.append(SECTION)
         NEW_INFO.append(RINFO)
 
@@ -405,11 +417,11 @@ def editReservation(RINFO, RESERVATIONCHOICE):
 
 def editWalkin(WINFO, WALKINCHOICE):
     '''
-    User updates contact information
-    :param INFO: (int)
-    :return: (None)
+    User updates the walk-in information
+    :param WINFO: (int) Chosen walk-in to edit
+    :param WALKINCHOICE: (int) Chosen walk-in option
+    :return: (none)
     '''
-
     global CURSOR, CONNECTION
     if WALKINCHOICE == "EDITW":
 
@@ -476,7 +488,7 @@ def reservationTable():
     global CURSOR, CONNECTION
 
     CURSOR.execute('''
-        CREATE TABLE 
+        CREATE TABLE
             reservation(
                 id INTEGER PRIMARY KEY,
                 first_name TEXT NOT NULL,
@@ -492,7 +504,7 @@ def reservationTable():
 
 def walkinTable():
     '''
-    create the contacts table if it is the first run.
+    creates walk-in table if first run
     :return: (None)
     '''
     global CURSOR, CONNECTION
@@ -513,10 +525,12 @@ def walkinTable():
 
 def deleteReservation(DELETECHOICE, RINFO):
     '''
-    Delete a contact from the contacts database
-    :param CONTACT_ID: (int) primary key
+    Deletes reservation from reservation table
+    :param DELETECHOICE: (int) chosen delete option
+    :param RINFO: (int) chosen reservation to delete
     :return: (none)
     '''
+
     global CURSOR, CONNECTION
     if DELETECHOICE == "DELETER":
         DELETER = CURSOR.execute('''
@@ -547,8 +561,9 @@ def deleteReservation(DELETECHOICE, RINFO):
 
 def deleteWalkIn(DELETECHOICE, WINFO):
     '''
-    Delete a contact from the contacts database
-    :param CONTACT_ID: (int) primary key
+    Deletes walk-in from walkin table
+    :param DELETECHOICE: (int) chosen delete option
+    :param WINFO: (int) chosen walk-in to delete
     :return: (none)
     '''
     global CURSOR, CONNECTION
@@ -577,16 +592,31 @@ def deleteWalkIn(DELETECHOICE, WINFO):
         print("Successfully Deleted!")
 
 def exitReservation(RESERVATIONCHOICE):
+    '''
+    Exits program for reservation option
+    :param RESERVATIONCHOICE: (int) chosen reservation option
+    :return: (none)
+    '''
     if RESERVATIONCHOICE == "Exit":
         print("Have a nice day!")
         sys.exit()
 
 def exitWalkin(WALKINCHOICE):
+    '''
+    Exits program for walk-in option
+    :param WALKINCHOICE: (int) chosen walk-in option
+    :return: (none)
+    '''
     if WALKINCHOICE == "Exit":
         print("Have a nice day!")
         sys.exit()
 
 def exitDelete(DELETECHOICE):
+    '''
+    Edits program for delete option
+    :param DELETECHOICE: (int) chosen delete option
+    :return: (none)
+    '''
     if DELETECHOICE == "Exit":
         print("Have a nice day!")
         sys.exit()
@@ -617,16 +647,16 @@ def dispReservations(RESERVATIONCHOICE):
 
 def dispWalkIn(WALKINCHOICE):
     '''
-    Displays all reservations starting with date
+    Displays all walk-ins starting with time
     :return: (None)
     '''
     if WALKINCHOICE == "VIEWW":
         WALKIN = CURSOR.execute('''
             SELECT
+                time,
                 first_name,
                 last_name,
-                phone,
-                time
+                phone
             FROM
                 walkin
             ORDER BY
@@ -638,12 +668,12 @@ def dispWalkIn(WALKINCHOICE):
 
 ### --- MAIN PROGRAM CODE --- ###
 if __name__ == "__main__":
+    startingScreen()
+    if FIRST_RUN:
+        reservationTable()
+        walkinTable()
     while True:
-        startingScreen()
         OPTION = startMenu()
-        if FIRST_RUN:
-            reservationTable()
-            walkinTable()
         if OPTION == 1:
             RESERVATIONCHOICE = reservationSelection()
             addReservation(RESERVATIONCHOICE)
